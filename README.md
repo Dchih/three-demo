@@ -1,2 +1,1 @@
-# three-demo
-a three.js demo
+# <center>Vue 3 + TypeScript + Vite + three.js
