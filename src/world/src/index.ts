@@ -1,20 +1,27 @@
-import { PerspectiveCamera, Mesh, WebGLRenderer, Scene, Object3D, Vector3 } from "three"
+import { PerspectiveCamera, Mesh, WebGLRenderer, Scene, PointLight } from "three"
 import { createCamera } from "./components/camera";
-import { createCube } from "./components/cube";
+// import { createCube } from "./components/cube";
 import { createRenderer } from "./systems/renderer";
 import { createScene } from "./components/scene";
 import { Resizer } from "./systems/Resizer";
-import { createTorus } from "./components/shapes/torus";
+// import { createTorus } from "./components/shapes/torus";
+import { createLights } from "./components/lights/light";
+import { createSphere } from "./components/shapes/sphere";
+import { Loop } from "./systems/loop";
+
 
 class World {
   #container: HTMLCanvasElement;
   #camera: PerspectiveCamera;
-  // cube: Mesh;
-  #torus: Mesh;
+  // #cube: Mesh;
+  // #torus: Mesh;
   #renderer: WebGLRenderer;
   #scene: Scene;
-  #group: Object3D;
-
+  #lights: PointLight;
+  #sun: Mesh;
+  #earth: Mesh;
+  #moon: Mesh;
+  #loop: Loop
   angle: number;
 
   constructor(container: HTMLCanvasElement) {
@@ -22,31 +29,41 @@ class World {
     this.#camera = createCamera()
     this.#renderer = createRenderer()
     this.#scene = createScene()
+    this.#loop = new Loop(this.#camera, this.#scene, this.#renderer)
     this.#container.appendChild(this.#renderer.domElement)
-
+    
     // const cube: Mesh = createCube()
     this.angle = 0
-    this.#torus = createTorus()
-    this.#scene.add(this.#torus)
+    this.#lights = createLights()
+    this.#sun = createSphere([10])
+    this.#earth = createSphere([4])
+    this.#moon = createSphere([1])
+    this.#earth.position.z = 35
+    this.#moon.position.z = 6
+    this.#sun.add(this.#earth)
+    this.#earth.add(this.#moon)
+    this.#scene.add(this.#sun, this.#lights)
 
     const resizer = new Resizer(this.#container, this.#camera, this.#renderer)
+    // resizer.onResize = () => {
+    //   this.render()
+    // }
   }
 
   render() {
     requestAnimationFrame(this.render.bind(this))
-
-    // this.#torus.rotation.x += .01
-    // this.#torus.rotation.y += .01
-
-    const radius = 70
-    this.angle += .01
-    this.#camera.position.x = radius * Math.cos(this.angle)
-    this.#camera.position.z = radius * Math.sin(this.angle)
-    this.#camera.position.y = 10
-    this.#camera.lookAt(new Vector3(0,0,0))
-
-
+    this.#sun.rotation.y += 0.001
+    this.#earth.rotation.y += .01
+    this.#earth.rotation.x += .003
     this.#renderer.render(this.#scene, this.#camera)
+  }
+
+  start() {
+    this.#loop.start()
+  }
+
+  stop() {
+    this.#loop.stop()
   }
 }
 

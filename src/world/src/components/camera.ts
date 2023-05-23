@@ -1,13 +1,13 @@
-import { PerspectiveCamera, Vector3 } from "three";
+import { PerspectiveCamera } from "three";
 
 function createCamera() {
   const camera = new PerspectiveCamera(
     75,
     1,
     .1,
-    100
+    1000
   )
-  camera.position.set(0,0,75)
+  camera.position.set(0,10,75)
   return camera
 }
 
