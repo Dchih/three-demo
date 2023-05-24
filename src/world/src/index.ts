@@ -8,12 +8,13 @@ import { Resizer } from "./systems/Resizer";
 import { createLights } from "./components/lights/light";
 import { createSphere } from "./components/shapes/sphere";
 import { Loop } from "./systems/loop";
+import { createCube } from "./components/cube";
 
 
 class World {
   #container: HTMLCanvasElement;
   #camera: PerspectiveCamera;
-  // #cube: Mesh;
+  #cube: Mesh;
   // #torus: Mesh;
   #renderer: WebGLRenderer;
   #scene: Scene;
@@ -31,30 +32,18 @@ class World {
     this.#scene = createScene()
     this.#loop = new Loop(this.#camera, this.#scene, this.#renderer)
     this.#container.appendChild(this.#renderer.domElement)
-    
-    // const cube: Mesh = createCube()
+
     this.angle = 0
     this.#lights = createLights()
-    this.#sun = createSphere([10])
-    this.#earth = createSphere([4])
-    this.#moon = createSphere([1])
-    this.#earth.position.z = 35
-    this.#moon.position.z = 6
-    this.#sun.add(this.#earth)
-    this.#earth.add(this.#moon)
-    this.#scene.add(this.#sun, this.#lights)
+    this.#cube = createCube()
+    this.#loop = new Loop(this.#camera, this.#scene, this.#renderer)
+    this.#loop.updatables.push(this.#cube)
+    this.#scene.add(this.#cube, this.#lights)
 
     const resizer = new Resizer(this.#container, this.#camera, this.#renderer)
-    // resizer.onResize = () => {
-    //   this.render()
-    // }
   }
 
   render() {
-    requestAnimationFrame(this.render.bind(this))
-    this.#sun.rotation.y += 0.001
-    this.#earth.rotation.y += .01
-    this.#earth.rotation.x += .003
     this.#renderer.render(this.#scene, this.#camera)
   }
 

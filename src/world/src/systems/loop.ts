@@ -1,5 +1,7 @@
 import { Clock, PerspectiveCamera, Scene, WebGLRenderer } from 'three'
 
+const clock = new Clock()
+
 class Loop {
   #camera: PerspectiveCamera
   #scene: Scene
@@ -21,8 +23,9 @@ class Loop {
     this.#renderer.setAnimationLoop(null)
   }
   tick() {
+    const delta = clock.getDelta()
     for(const object  of this.updatables) {
-      (object as any).tick()
+      (object as any).tick(delta)
     }
   }
 }
