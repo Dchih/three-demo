@@ -4,7 +4,7 @@ import { PointLight } from "three"
 // color
 // intensity
 function createLights() {
-  const light = new PointLight('green', 2)
+  const light = new PointLight('white', 2)
   light.position.set(40, 40, 40)
   return light
 }

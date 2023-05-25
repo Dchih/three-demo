@@ -7,11 +7,7 @@ function createCamera() {
     .1,
     1000
   )
-  camera.position.set(0,10,75)
-
-  camera.tick = () => {
-    
-  }
+  camera.position.set(0,0,75)
   return camera
 }
 
