@@ -1,4 +1,4 @@
-import { PerspectiveCamera, Mesh, WebGLRenderer, Scene, PointLight } from "three"
+import { PerspectiveCamera, Mesh, WebGLRenderer, Scene, PointLight, Vector3 } from "three"
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { createCamera } from "./components/camera";
 // import { createCube } from "./components/cube";
@@ -34,27 +34,27 @@ class World {
     this.#renderer = createRenderer()
     this.#scene = createScene()
 
-    this.#controls = createControls(this.#camera, this.#renderer.domElement)
+    this.#controls = createControls(this.#camera, this.#renderer, this.#scene)
 
     this.#loop = new Loop(this.#camera, this.#scene, this.#renderer)
-    this.#container.appendChild(this.#renderer.domElement)
     this.#loop.updatables.push(this.#controls)
+
+    this.#container.appendChild(this.#renderer.domElement)
 
     this.angle = 0
     this.#lights = createLights()
     this.#cube = createCube()
-    this.#loop = new Loop(this.#camera, this.#scene, this.#renderer)
     // this.#loop.updatables.push(this.#cube)
-    this.#torus = createTorus()
+    // this.#torus = createTorus()
     // this.#loop.updatables.push(this.#torus)
-    this.#scene.add(this.#torus)
+    // this.#scene.add(this.#torus)
     this.#scene.add(this.#cube, this.#lights)
 
     const resizer = new Resizer(this.#container, this.#camera, this.#renderer)
   }
 
   render() {
-    this.#controls.update()
+    // this.#controls.update()
     this.#renderer.render(this.#scene, this.#camera)
   }
 
@@ -64,6 +64,20 @@ class World {
 
   stop() {
     this.#loop.stop()
+  }
+
+  setCameraPosition(v: Vector3) {
+    const { x, y, z} = v
+    this.#camera.position.set(x, y, z)
+    // this.#camera
+  }
+
+  setControlsPosition(v: Vector3) {
+    console.log('setting...')
+    this.#controls.target.lerp(v as Vector3, 0.05)
+    this.#controls.update()
+    this.render()
+    console.log('setted')
   }
 }
 
