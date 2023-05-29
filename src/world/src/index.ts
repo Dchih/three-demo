@@ -1,4 +1,4 @@
-import { PerspectiveCamera, Mesh, WebGLRenderer, Scene, PointLight, Vector3 } from "three"
+import { PerspectiveCamera, Mesh, WebGLRenderer, Scene, PointLight, DirectionalLight, AmbientLight, Vector3 } from "three"
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { createCamera } from "./components/camera";
 // import { createCube } from "./components/cube";
@@ -6,11 +6,12 @@ import { createRenderer } from "./systems/renderer";
 import { createScene } from "./components/scene";
 import { Resizer } from "./systems/Resizer";
 import { createTorus } from "./components/shapes/torus";
-import { createLights } from "./components/lights/light";
+import { createLights, createAmbienLight } from "./components/lights/light";
 import { createSphere } from "./components/shapes/sphere";
 import { Loop } from "./systems/loop";
 import { createCube } from "./components/cube";
 import { createControls } from "./systems/orbitControl";
+import { createMap } from "./components/shapes/map"
 
 
 class World {
@@ -20,13 +21,15 @@ class World {
   #torus: Mesh;
   #renderer: WebGLRenderer;
   #scene: Scene;
-  #lights: PointLight;
+  #lights: DirectionalLight;
   #sun: Mesh;
   #earth: Mesh;
   #moon: Mesh;
   #loop: Loop
   angle: number;
   #controls: OrbitControls;
+  #map;
+  #AmbientLight: AmbientLight
 
   constructor(container: HTMLCanvasElement) {
     this.#container = container
@@ -43,12 +46,16 @@ class World {
 
     this.angle = 0
     this.#lights = createLights()
-    this.#cube = createCube()
+    // this.#cube = createCube()
     // this.#loop.updatables.push(this.#cube)
     // this.#torus = createTorus()
     // this.#loop.updatables.push(this.#torus)
     // this.#scene.add(this.#torus)
-    this.#scene.add(this.#cube, this.#lights)
+    this.#map = createMap()
+    this.#AmbientLight = createAmbienLight()
+    this.#scene.add(this.#AmbientLight)
+    console.log(this.#map)
+    this.#scene.add(this.#map, this.#lights)
 
     const resizer = new Resizer(this.#container, this.#camera, this.#renderer)
   }

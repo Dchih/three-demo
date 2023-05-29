@@ -13,7 +13,7 @@ function createControls(camera: PerspectiveCamera, renderer: WebGLRenderer, scen
   controls.target.set(0,0,0)
   // controls.enablePan = false
   controls.enableDamping = true
-  controls.dampingFactor = .01
+  controls.dampingFactor = .07
   // controls.minDistance = 15
   // controls.maxDistance = 5
   // controls.enableRotate = false

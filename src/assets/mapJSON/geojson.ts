@@ -1,4 +1,27 @@
-{
+interface Properties {
+  name: string,
+  "fill-opacity": number,
+  "stroke-opacity": number,
+  stroke: string
+}
+
+interface GeometryData {
+  type: string,
+  coordinates: [number, number][][]
+}
+
+interface FeatureItem {
+  type: string,
+  geometry: GeometryData,
+  properties: Properties
+};
+
+interface JsonType {
+  type: string,
+  features: FeatureItem[]
+};
+
+export const geoJSON: JsonType = {
   "type": "FeatureCollection",
   "features": [
     {
