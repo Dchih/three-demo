@@ -4,7 +4,7 @@ import { DirectionalLight, AmbientLight } from "three"
 // color
 // intensity
 function createLights() {
-  const light = new DirectionalLight('white', 2)
+  const light = new DirectionalLight(0x666666, 2)
   light.position.set(40, 40, 40)
   return light
 }

@@ -17,7 +17,6 @@ function randomPosition() {
 }
 
 onMounted(() => {
-  console.log(main())
   world = main()
 })
 

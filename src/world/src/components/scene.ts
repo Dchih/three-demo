@@ -4,7 +4,7 @@ function createScene() {
   const scene = new Scene()
   // const axiosHelper = new AxesHelper(2000)
   // const gridHelper = new GridHelper(600, 60)
-  scene.background = new Color(0xf0f0f0)
+  scene.background = new Color(0xefefef)
   // scene.add(axiosHelper)
   // scene.add(gridHelper)
   return scene

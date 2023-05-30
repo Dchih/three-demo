@@ -6,7 +6,7 @@ function createMeterial() {
   const textureLoader = new TextureLoader()
   const texture = textureLoader.load('/src/assets/uv-test-col.png')
   console.log(texture)
-  const material = new MeshStandardMaterial({map: texture})
+  const material = new MeshStandardMaterial()
   return material
 }
 
@@ -14,7 +14,7 @@ function createTorus() {
   const geometry = new TorusGeometry(10, 3, 16, 100)
   const material = createMeterial()
   const torus = new Mesh(geometry, material)
-  torus.position.set(40, 0, 0)
+  torus.position.set(0, 0, 0)
 
   torus.tick = (delta: number) => {
     torus.rotation.x += roundRadian * delta

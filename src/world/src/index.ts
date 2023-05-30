@@ -11,7 +11,8 @@ import { createSphere } from "./components/shapes/sphere";
 import { Loop } from "./systems/loop";
 import { createCube } from "./components/cube";
 import { createControls } from "./systems/orbitControl";
-import { createMap } from "./components/shapes/map"
+import { createMap, paintShape } from "./components/shapes/map"
+import { createExtrude } from "./components/shapes/extrude"
 
 
 class World {
@@ -29,7 +30,9 @@ class World {
   angle: number;
   #controls: OrbitControls;
   #map;
-  #AmbientLight: AmbientLight
+  #AmbientLight: AmbientLight;
+  #mapShape: Mesh;
+  #extrude: Mesh
 
   constructor(container: HTMLCanvasElement) {
     this.#container = container
@@ -52,9 +55,13 @@ class World {
     // this.#loop.updatables.push(this.#torus)
     // this.#scene.add(this.#torus)
     this.#map = createMap()
+    // this.#loop.updatables.push(this.#map)
     this.#AmbientLight = createAmbienLight()
     this.#scene.add(this.#AmbientLight)
-    console.log(this.#map)
+    this.#mapShape = paintShape()
+    // this.#extrude = createExtrude()
+    // this.#scene.add(this.#extrude)
+    this.#scene.add(this.#mapShape)
     this.#scene.add(this.#map, this.#lights)
 
     const resizer = new Resizer(this.#container, this.#camera, this.#renderer)
