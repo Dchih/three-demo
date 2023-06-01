@@ -50,13 +50,7 @@ function paintShape() {
       shapeArr.push(shape)
     })
   })
-  const material1 = new Three.MeshPhongMaterial({
-    color: 0x00ff00,
-    specular: 0x00ff00
-  })
-  const material2 = new Three.MeshStandardMaterial({
-    color: 0x00ab00
-  })
+  
   console.log(shapeArr)
   const geometryArr: ExtrudeGeometry[] = []
   shapeArr.forEach(shape => {
@@ -76,8 +70,17 @@ function paintShape() {
   //   }
   // )
   const meshArr: Mesh[] = []
-  geometryArr.forEach(geometry => {
-    meshArr.push(new Three.Mesh(geometry, [material2, material1]))  // 侧面 顶面
+  geometryArr.forEach((geometry, index) => {
+    if(index === 0) {
+      const material1 = new Three.MeshPhongMaterial({
+        color: 0x00ff00,
+        specular: 0x00ff00
+      })
+      const material2 = new Three.MeshStandardMaterial({
+        color: 0x00ab00
+      })
+      meshArr.push(new Three.Mesh(geometry, [material2, material1]))  // 侧面 顶面
+    }
   })
   // const mesh = new Three.Mesh(geometry, [material1, materail2])
   meshGroup = meshArr
@@ -91,27 +94,39 @@ function paintShape() {
 let previous = null
 let camera: PerspectiveCamera
 let scene: Scene
-const raycaster = new Three.Raycaster()
 function handleMouseOver(e: MouseEvent) {
   let mouse = new Three.Vector2(0, 0)
   const canvas: HTMLCanvasElement = document.querySelector('#scene') as HTMLCanvasElement
   mouse.x = (e.offsetX / canvas.offsetWidth) * 2 - 1
   mouse.y = - (e.offsetY / canvas.offsetHeight) * 2 + 1
+  const raycaster = new Three.Raycaster()
 
   raycaster.setFromCamera(mouse, camera)
 
+
   // 性能问题
   let intersections = raycaster.intersectObjects(meshGroup)
-  console.log(intersections[0].object.uuid, meshGroup[0].uuid)
+  // console.log(intersections[0]?.object.uuid, meshGroup[0].uuid)
   if(previous) {
-    previous.material[0].color = new Three.Color(0x686868)
+    previous.material[0].color.set(0x686868)
   }
-  meshGroup
-  intersections.forEach(intersect => {
-    console.log(intersect.object.material[0].uuid)
+  meshGroup.forEach(mesh => {
+    console.log(mesh.material[0].uuid)
+    console.log('mesh: ', mesh.uuid)
   })
+  // intersections.forEach(intersect => {
+  //   console.log(intersect?.object.material[0].uuid)
+  // })
+  
+
   if(intersections[0] && intersections[0].object) {
-    intersections[0].object.material[0].color = new Three.Color(0xff9300)
+    const newMaterial1 = new Three.MeshPhongMaterial({
+      color: 0xff9300,
+      specular: 0x00ff00
+    })
+    console.log('第一个： ', intersections[0])
+    intersections[0].object.material[0] = newMaterial1
+    console.log('改变以后：', intersections[0])
     previous = intersections[0].object
   }
 }
