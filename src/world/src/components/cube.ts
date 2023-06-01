@@ -12,10 +12,10 @@ function createMaterial() {
   // 纹理
   const textureLoader = new TextureLoader()
 
-  const texture = textureLoader.load('/src/assets/uv-test-col.png')
-  const texture2 = textureLoader.load('/src/assets/uv-test-bw.png')
+  const texture = textureLoader.load('/src/assets/background.png')
+  // const texture2 = textureLoader.load('/src/assets/uv-test-bw.png')
 
-  const material = new MeshStandardMaterial({normalMap: texture, lightMap: texture2})
+  const material = new MeshStandardMaterial({map: texture})
   // material.transparent = true
   return material
 }
@@ -37,7 +37,7 @@ function createCube() {
     // cube.scale.y = triangleWave(waveNumber, 10) * delta * 100
     // cube.scale.z = triangleWave(waveNumber, 10) * delta * 100
   }
-
+  cube.position.set(-10, 30, 0)
   return cube
 }
 

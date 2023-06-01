@@ -31,7 +31,7 @@ class World {
   #controls: OrbitControls;
   #map;
   #AmbientLight: AmbientLight;
-  #mapShape: Mesh;
+  #mapShape: Mesh[];
   #extrude: Mesh
 
   constructor(container: HTMLCanvasElement) {
@@ -49,19 +49,18 @@ class World {
 
     this.angle = 0
     this.#lights = createLights()
-    // this.#cube = createCube()
-    // this.#loop.updatables.push(this.#cube)
-    // this.#torus = createTorus()
-    // this.#loop.updatables.push(this.#torus)
-    // this.#scene.add(this.#torus)
-    this.#map = createMap()
-    // this.#loop.updatables.push(this.#map)
+    this.#cube = createCube()
+    this.#scene.add(this.#cube)
+    this.#map = createMap(this.#camera, this.#scene)
     this.#AmbientLight = createAmbienLight()
     this.#scene.add(this.#AmbientLight)
     this.#mapShape = paintShape()
     // this.#extrude = createExtrude()
     // this.#scene.add(this.#extrude)
-    this.#scene.add(this.#mapShape)
+    this.#mapShape.forEach(map => {
+      this.#scene.add(map)
+    })
+    
     this.#scene.add(this.#map, this.#lights)
 
     const resizer = new Resizer(this.#container, this.#camera, this.#renderer)

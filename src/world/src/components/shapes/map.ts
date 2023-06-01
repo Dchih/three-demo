@@ -1,5 +1,5 @@
 import * as Three from "three";
-import { Vector2, Shape } from "three"
+import { Vector2, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene } from "three"
 import { geoJSON } from "../../../../assets/mapJSON/geojson";
 
 function paintEdge(pointArr: number[]) {
@@ -33,7 +33,10 @@ function tackleJSON() {
   return group
 }
 
+let meshGroup: Mesh[]
 function paintShape() {
+  const textureLoader = new Three.TextureLoader()
+  const texture = textureLoader.load('/src/assets/background.png')
   let shapeArr: Shape[] = []
   geoJSON.features.forEach(feature => {
     const coordinates = feature.geometry.coordinates
@@ -48,30 +51,77 @@ function paintShape() {
     })
   })
   const material1 = new Three.MeshPhongMaterial({
-    color: 0x0000ff,
+    color: 0x00ff00,
     specular: 0x00ff00
   })
-  const materail2 = new Three.MeshBasicMaterial({
-    color: 0x008bfb
+  const material2 = new Three.MeshStandardMaterial({
+    color: 0x00ab00
   })
   console.log(shapeArr)
-  const geometry = new Three.ExtrudeGeometry(
-    shapeArr,
-    {
-      depth: 2,
-      bevelEnabled: false //无倒角
-    }
-  )
-  const mesh = new Three.Mesh(geometry, [material1, materail2])
-  // mesh.scale.set(4,4,4)
-  // mesh.position.set(0,0,0)
-  return mesh
+  const geometryArr: ExtrudeGeometry[] = []
+  shapeArr.forEach(shape => {
+    geometryArr.push(new Three.ExtrudeGeometry(
+      shapeArr,
+      {
+        depth: 2,
+        bevelEnabled: false //无倒角
+      }
+    ))
+  })
+  // const geometry = new Three.ExtrudeGeometry(
+  //   shapeArr,
+  //   {
+  //     depth: 2,
+  //     bevelEnabled: false //无倒角
+  //   }
+  // )
+  const meshArr: Mesh[] = []
+  geometryArr.forEach(geometry => {
+    meshArr.push(new Three.Mesh(geometry, [material2, material1]))  // 侧面 顶面
+  })
+  // const mesh = new Three.Mesh(geometry, [material1, materail2])
+  meshGroup = meshArr
+  console.log('mesh: ', meshArr)
+  return meshArr
+}
+
+// 初始化完map添加鼠标事件
+// 鼠标事件应该在鼠标完成后恢复原来的颜色
+// 优化： 鼠标移动时进行射线检测
+let previous = null
+let camera: PerspectiveCamera
+let scene: Scene
+const raycaster = new Three.Raycaster()
+function handleMouseOver(e: MouseEvent) {
+  let mouse = new Three.Vector2(0, 0)
+  const canvas: HTMLCanvasElement = document.querySelector('#scene') as HTMLCanvasElement
+  mouse.x = (e.offsetX / canvas.offsetWidth) * 2 - 1
+  mouse.y = - (e.offsetY / canvas.offsetHeight) * 2 + 1
+
+  raycaster.setFromCamera(mouse, camera)
+
+  // 性能问题
+  let intersections = raycaster.intersectObjects(meshGroup)
+  console.log(intersections[0].object.uuid, meshGroup[0].uuid)
+  if(previous) {
+    previous.material[0].color = new Three.Color(0x686868)
+  }
+  meshGroup
+  intersections.forEach(intersect => {
+    console.log(intersect.object.material[0].uuid)
+  })
+  if(intersections[0] && intersections[0].object) {
+    intersections[0].object.material[0].color = new Three.Color(0xff9300)
+    previous = intersections[0].object
+  }
 }
 
 // func
-
-function createMap() {
+window.addEventListener('click', handleMouseOver, false)
+function createMap(mCamera: PerspectiveCamera, mScene: Scene) {
   const group = tackleJSON()
+  camera = mCamera
+  scene = mScene
   return group
 }
 
