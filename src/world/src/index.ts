@@ -11,8 +11,9 @@ import { createSphere } from "./components/shapes/sphere";
 import { Loop } from "./systems/loop";
 import { createCube } from "./components/cube";
 import { createControls } from "./systems/orbitControl";
-import { createMap, paintShape } from "./components/shapes/map"
+import { createMap, paintShape, paintPoint, paintPointNames, createText } from "./components/shapes/map"
 import { createExtrude } from "./components/shapes/extrude"
+import { CSS3DRenderer, CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js"
 
 
 class World {
@@ -32,7 +33,9 @@ class World {
   #map;
   #AmbientLight: AmbientLight;
   #mapShape: Mesh[];
-  #extrude: Mesh
+  #extrude: Mesh;
+  #points;
+  #pointnames;
 
   constructor(container: HTMLCanvasElement) {
     this.#container = container
@@ -40,7 +43,7 @@ class World {
     this.#renderer = createRenderer()
     this.#scene = createScene()
 
-    this.#controls = createControls(this.#camera, this.#renderer, this.#scene)
+    this.#controls = createControls(this.#camera, this.#renderer, this.#scene, new CSS3DRenderer())
 
     this.#loop = new Loop(this.#camera, this.#scene, this.#renderer)
     this.#loop.updatables.push(this.#controls)
@@ -49,8 +52,8 @@ class World {
 
     this.angle = 0
     this.#lights = createLights()
-    this.#cube = createCube()
-    this.#scene.add(this.#cube)
+    // this.#cube = createCube()
+    // this.#scene.add(this.#cube)
     this.#map = createMap(this.#camera, this.#scene)
     this.#AmbientLight = createAmbienLight()
     this.#scene.add(this.#AmbientLight)
@@ -60,6 +63,16 @@ class World {
     this.#mapShape.forEach(map => {
       this.#scene.add(map)
     })
+
+    this.#points = paintPoint()
+    this.#points.forEach(point => {
+      this.#scene.add(point)
+    })
+    createText().then(mesh => this.#scene.add(mesh))
+    // this.#pointnames = paintPointNames()
+    // this.#pointnames.forEach(text => {
+    //   this.#scene.add(text)
+    // })
     
     this.#scene.add(this.#map, this.#lights)
 

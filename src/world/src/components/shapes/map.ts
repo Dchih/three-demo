@@ -1,6 +1,84 @@
 import * as Three from "three";
-import { Vector2, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene } from "three"
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { Vector2, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene, CircleGeometry } from "three"
 import { geoJSON } from "../../../../assets/mapJSON/geojson";
+import { points } from "../../../../assets/mapJSON/points";
+import { CSS3DRenderer, CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js"
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { fontFile } from '../../../../assets/font/hongleixingshu_Regular'
+
+function paintPoint() {
+  const pointArr: Mesh[] = []
+  points.forEach(area => {
+    area.coordinates.forEach(point => {
+      const circle = new Three.SphereGeometry( .5, 16, 16 );
+      const materail = new Three.MeshBasicMaterial({color: 0x00ff00})
+      const mesh = new Three.Mesh(circle, materail)
+      const [y, x] = point.coord
+      const xAxes = (x - 112.65) * 240
+      const yAxes = (y - 22.82) * 240
+      mesh.position.set(xAxes, yAxes, 2.6)
+      pointArr.push(mesh)
+    })
+  })
+  return pointArr
+}
+
+async function createText() {
+  // const el = document.createElement('div')
+  // el.textContent = 'hello, three'
+  // el.style.fontSize = '16px'
+  // el.style.color = 'red'
+  // el.style.backgroundColor = 'black'
+  // const cssobj = new CSS3DObject(el)
+  // const [y, x] = [22.698411,112.426577]
+  // const xAxes = (x - 112.65) * 240
+  // const yAxes = (y - 22.82) * 240
+  // cssobj.position.set(xAxes, yAxes, 2.6)
+  // return cssobj
+  const loader = new FontLoader()
+  let geo
+  loader.load(fontFile, function(font) {
+    geo = new TextGeometry( 'Hello three.js!', {
+      font: font,
+      size: 80,
+      height: 5,
+      curveSegments: 12,
+      bevelEnabled: true,
+      bevelThickness: 10,
+      bevelSize: 8,
+      bevelOffset: 0,
+      bevelSegments: 5
+    });
+  }, err => {console.error('加载失败')})
+  console.log(loader)
+  const material = new Three.MeshBasicMaterial({color: 0xff0000})
+  const mesh = new Mesh(geo, material)
+  return mesh
+}
+
+function paintPointNames() {
+  const pointArr: CSS3DObject[] = []
+  points.forEach(area => {
+    area.coordinates.forEach(point => {
+      const el = document.createElement('div')
+      el.textContent = point.name
+      el.style.fontSize = '16px'
+      el.style.color = 'white'
+      el.style.backgroundColor = 'black'
+      // console.log(el)
+      const cssObject = new CSS3DObject(el)
+      // cssObject.position.set()
+      // console.log(cssObject)
+      const [y, x] = point.coord
+      const xAxes = (x - 112.65) * 240
+      const yAxes = (y - 22.82) * 240
+      // cssObject.position.set(xAxes, yAxes, 2.6)
+      pointArr.push(cssObject)
+    })
+  })
+  return pointArr
+}
 
 function paintEdge(pointArr: number[]) {
   const geometry = new Three.BufferGeometry()
@@ -50,41 +128,29 @@ function paintShape() {
       shapeArr.push(shape)
     })
   })
-  
-  console.log(shapeArr)
   const geometryArr: ExtrudeGeometry[] = []
   shapeArr.forEach(shape => {
     geometryArr.push(new Three.ExtrudeGeometry(
-      shapeArr,
+      shape,
       {
         depth: 2,
         bevelEnabled: false //无倒角
       }
     ))
   })
-  // const geometry = new Three.ExtrudeGeometry(
-  //   shapeArr,
-  //   {
-  //     depth: 2,
-  //     bevelEnabled: false //无倒角
-  //   }
-  // )
+  const material1 = new Three.MeshPhongMaterial({
+    color: 0x00ff00,
+    specular: 0x00ff00
+  })
+  const material2 = new Three.MeshStandardMaterial({
+    color: 0x00ab00
+  })
   const meshArr: Mesh[] = []
   geometryArr.forEach((geometry, index) => {
-    if(index === 0) {
-      const material1 = new Three.MeshPhongMaterial({
-        color: 0x00ff00,
-        specular: 0x00ff00
-      })
-      const material2 = new Three.MeshStandardMaterial({
-        color: 0x00ab00
-      })
-      meshArr.push(new Three.Mesh(geometry, [material2, material1]))  // 侧面 顶面
-    }
+    // console.log(geometry.attributes.uv)
+    meshArr.push(new Three.Mesh(geometry, [material2, material1]))  // 侧面 顶面
   })
-  // const mesh = new Three.Mesh(geometry, [material1, materail2])
   meshGroup = meshArr
-  console.log('mesh: ', meshArr)
   return meshArr
 }
 
@@ -95,43 +161,31 @@ let previous = null
 let camera: PerspectiveCamera
 let scene: Scene
 function handleMouseOver(e: MouseEvent) {
+  console.log('触发事件')
   let mouse = new Three.Vector2(0, 0)
   const canvas: HTMLCanvasElement = document.querySelector('#scene') as HTMLCanvasElement
   mouse.x = (e.offsetX / canvas.offsetWidth) * 2 - 1
   mouse.y = - (e.offsetY / canvas.offsetHeight) * 2 + 1
   const raycaster = new Three.Raycaster()
-
   raycaster.setFromCamera(mouse, camera)
-
-
   // 性能问题
   let intersections = raycaster.intersectObjects(meshGroup)
-  // console.log(intersections[0]?.object.uuid, meshGroup[0].uuid)
   if(previous) {
     previous.material[0].color.set(0x686868)
   }
-  meshGroup.forEach(mesh => {
-    console.log(mesh.material[0].uuid)
-    console.log('mesh: ', mesh.uuid)
-  })
-  // intersections.forEach(intersect => {
-  //   console.log(intersect?.object.material[0].uuid)
-  // })
   
-
   if(intersections[0] && intersections[0].object) {
     const newMaterial1 = new Three.MeshPhongMaterial({
       color: 0xff9300,
       specular: 0x00ff00
     })
-    console.log('第一个： ', intersections[0])
     intersections[0].object.material[0] = newMaterial1
-    console.log('改变以后：', intersections[0])
     previous = intersections[0].object
   }
 }
 
 // func
+window.addEventListener('mouseenter', handleMouseOver, false)
 window.addEventListener('click', handleMouseOver, false)
 function createMap(mCamera: PerspectiveCamera, mScene: Scene) {
   const group = tackleJSON()
@@ -140,4 +194,4 @@ function createMap(mCamera: PerspectiveCamera, mScene: Scene) {
   return group
 }
 
-export { createMap, paintShape }
+export { createMap, paintShape, paintPoint, paintPointNames, createText }

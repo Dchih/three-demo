@@ -1,5 +1,7 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { PerspectiveCamera, MathUtils, WebGLRenderer, Scene, Vector3 } from 'three'
+import { CSS3DRenderer, CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js"
+
 
 function randomPosition(min, max) {
   const x = Math.random() * (max - min) + min
@@ -8,7 +10,7 @@ function randomPosition(min, max) {
   return new Vector3(x, y, z)
 }
 
-function createControls(camera: PerspectiveCamera, renderer: WebGLRenderer, scene: Scene) {
+function createControls(camera: PerspectiveCamera, renderer: WebGLRenderer, scene: Scene, cssRenderer: CSS3DRenderer) {
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.target.set(0,0,0)
   // controls.enablePan = false
@@ -29,6 +31,7 @@ function createControls(camera: PerspectiveCamera, renderer: WebGLRenderer, scen
   }
   controls.addEventListener('change', () => {
     renderer.render(scene, camera)
+    cssRenderer.render(scene, camera)
   })
   
   return controls
