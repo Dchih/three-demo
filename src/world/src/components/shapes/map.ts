@@ -5,7 +5,6 @@ import { geoJSON } from "../../../../assets/mapJSON/geojson";
 import { points } from "../../../../assets/mapJSON/points";
 import { CSS3DRenderer, CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js"
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-import { fontFile } from '../../../../assets/font/hongleixingshu_Regular'
 
 function paintPoint() {
   const pointArr: Mesh[] = []
@@ -24,37 +23,32 @@ function paintPoint() {
   return pointArr
 }
 
-async function createText() {
-  // const el = document.createElement('div')
-  // el.textContent = 'hello, three'
-  // el.style.fontSize = '16px'
-  // el.style.color = 'red'
-  // el.style.backgroundColor = 'black'
-  // const cssobj = new CSS3DObject(el)
-  // const [y, x] = [22.698411,112.426577]
-  // const xAxes = (x - 112.65) * 240
-  // const yAxes = (y - 22.82) * 240
-  // cssobj.position.set(xAxes, yAxes, 2.6)
-  // return cssobj
+function createText() {
   const loader = new FontLoader()
-  let geo
-  loader.load(fontFile, function(font) {
-    geo = new TextGeometry( 'Hello three.js!', {
-      font: font,
-      size: 80,
-      height: 5,
-      curveSegments: 12,
-      bevelEnabled: true,
-      bevelThickness: 10,
-      bevelSize: 8,
-      bevelOffset: 0,
-      bevelSegments: 5
-    });
-  }, err => {console.error('加载失败')})
-  console.log(loader)
-  const material = new Three.MeshBasicMaterial({color: 0xff0000})
-  const mesh = new Mesh(geo, material)
-  return mesh
+  return new Promise((resolve, reject) => {
+    loader.load('/font/PingFang_SC_Regular.typeface.json', function(font) {
+      const color = new Three.Color(0x006699);
+      const geo = new TextGeometry( 'Hello three.js!', {
+        font: font,
+        size: 5,
+        height: 5,
+        curveSegments: 4,
+        bevelEnabled: true,
+        bevelThickness: 2,
+        bevelSize: 1.5,
+        bevelOffset: 0,
+        bevelSegments: 5
+      });
+      const material = new Three.MeshBasicMaterial({ color: 0xff0000 })
+      const mesh = new Mesh(geo, material)
+      resolve(mesh)
+    }, PE => {
+      console.log('Progress: ', (PE.loaded / PE.total) * 100 + '%')
+    }, err => {
+      console.log(err)
+      reject(err)
+    })
+  })
 }
 
 function paintPointNames() {
