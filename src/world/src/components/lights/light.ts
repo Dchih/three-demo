@@ -10,7 +10,7 @@ function createLights() {
 }
 
 function createAmbienLight() {
-  const light = new AmbientLight(0xbbbbbb)
+  const light = new AmbientLight()
   return light
 }
 

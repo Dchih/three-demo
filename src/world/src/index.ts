@@ -64,17 +64,17 @@ class World {
       this.#scene.add(map)
     })
 
-    this.#points = paintPoint()
-    this.#points.forEach(point => {
-      this.#scene.add(point)
+    paintPoint().then(points => {
+      points.forEach(point => {
+        this.#scene.add(point)
+      })
     })
-    createText().then(mesh => this.#scene.add(mesh))
     // this.#pointnames = paintPointNames()
     // this.#pointnames.forEach(text => {
     //   this.#scene.add(text)
     // })
     
-    this.#scene.add(this.#map, this.#lights)
+    this.#scene.add(this.#map)
 
     const resizer = new Resizer(this.#container, this.#camera, this.#renderer)
   }

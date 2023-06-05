@@ -1,54 +1,84 @@
 import * as Three from "three";
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { Vector2, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene, CircleGeometry } from "three"
+import { Vector2, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene, CircleGeometry, MathUtils } from "three"
 import { geoJSON } from "../../../../assets/mapJSON/geojson";
 import { points } from "../../../../assets/mapJSON/points";
 import { CSS3DRenderer, CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js"
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 
-function paintPoint() {
+function toScreenPosition(obj, camera, renderer){
+    var vector = new Three.Vector3();
+    var widthHalf = 0.5 * renderer.context.canvas.width;
+    var heightHalf = 0.5 * renderer.context.canvas.height;
+    obj.updateMatrixWorld();
+    vector.setFromMatrixPosition(obj.matrixWorld);
+    vector.project(camera);
+    vector.x = ( vector.x * widthHalf ) + widthHalf;
+    vector.y = - ( vector.y * heightHalf ) + heightHalf;
+    return { 
+        x: vector.x,
+        y: vector.y
+    };
+}
+
+
+async function paintPoint() {
+  let pointsLen = 0
+  for(let i = 0; points.length > i; i++) {
+    pointsLen += points[i].coordinates.length
+  }
   const pointArr: Mesh[] = []
-  points.forEach(area => {
-    area.coordinates.forEach(point => {
-      const circle = new Three.SphereGeometry( .5, 16, 16 );
-      const materail = new Three.MeshBasicMaterial({color: 0x00ff00})
-      const mesh = new Three.Mesh(circle, materail)
+  const circle = new Three.CircleGeometry(.5, 16);
+  const materail = new Three.MeshBasicMaterial({color: 0x00ff00})
+  const mesh = new Three.InstancedMesh(circle, materail, pointsLen)
+  let index = 0
+  for(const area of points) {
+    for(const point of area.coordinates) {
+      index++
+      const instanceMatrix = new Three.Matrix4()
       const [y, x] = point.coord
       const xAxes = (x - 112.65) * 240
       const yAxes = (y - 22.82) * 240
-      mesh.position.set(xAxes, yAxes, 2.6)
-      pointArr.push(mesh)
-    })
-  })
+      instanceMatrix.setPosition(new Three.Vector3(xAxes, yAxes, 2.6))
+      mesh.setMatrixAt(index, instanceMatrix)
+    }
+  }
+  console.log(mesh)
+  pointArr.push(mesh)
   return pointArr
 }
 
-function createText() {
-  const loader = new FontLoader()
+function loadFont() {
   return new Promise((resolve, reject) => {
-    loader.load('/font/PingFang_SC_Regular.typeface.json', function(font) {
-      const color = new Three.Color(0x006699);
-      const geo = new TextGeometry( 'Hello three.js!', {
-        font: font,
-        size: 5,
-        height: 5,
-        curveSegments: 4,
-        bevelEnabled: true,
-        bevelThickness: 2,
-        bevelSize: 1.5,
-        bevelOffset: 0,
-        bevelSegments: 5
-      });
-      const material = new Three.MeshBasicMaterial({ color: 0xff0000 })
-      const mesh = new Mesh(geo, material)
-      resolve(mesh)
-    }, PE => {
+    const loader = new FontLoader()
+    loader.load('/font/KaiTi_Regular.json', resolve, PE => {
       console.log('Progress: ', (PE.loaded / PE.total) * 100 + '%')
     }, err => {
       console.log(err)
       reject(err)
     })
   })
+}
+
+let font:any = null
+async function createText(text: string) {
+    if(!font) {
+      font = await loadFont()
+    }
+    const geo = new TextGeometry( text, {
+      font: font,
+      size: 1.8,
+      height: .1,
+      curveSegments: 32,
+      bevelEnabled: true,
+      bevelThickness: 0.01,
+      bevelSize: 0.05,
+      bevelSegments: 3
+    });
+    const material = new Three.MeshBasicMaterial({ color: 0xff0000 })
+    const mesh = new Mesh(geo, material)
+    mesh.position.set(0, 0 ,2.6)
+    return mesh
 }
 
 function paintPointNames() {
@@ -91,10 +121,8 @@ function tackleJSON() {
     coordinates.forEach(multiPolygon => {
       multiPolygon.forEach(polygon => {
         const vector3: [number, number, number] = polygon.concat([.52]) as [number, number, number]
-        // 假设经纬度平均值为 112 22 2
         vector3[0] = (vector3[0] - 112.65) * 60
         vector3[1] = (vector3[1] - 22.82) * 60
-        // vector3[1] = vector3[1] - 22
         pointArr = pointArr.concat(vector3)
       })
     })
