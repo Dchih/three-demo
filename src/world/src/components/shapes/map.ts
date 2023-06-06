@@ -1,26 +1,48 @@
 import * as Three from "three";
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { Vector2, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene, CircleGeometry, MathUtils } from "three"
+import { Vector2,Vector3, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene, CircleGeometry, MathUtils } from "three"
 import { geoJSON } from "../../../../assets/mapJSON/geojson";
 import { points } from "../../../../assets/mapJSON/points";
-import { CSS3DRenderer, CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js"
+import { CSS2DRenderer,CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 
-function toScreenPosition(obj, camera, renderer){
-    var vector = new Three.Vector3();
-    var widthHalf = 0.5 * renderer.context.canvas.width;
-    var heightHalf = 0.5 * renderer.context.canvas.height;
-    obj.updateMatrixWorld();
-    vector.setFromMatrixPosition(obj.matrixWorld);
-    vector.project(camera);
-    vector.x = ( vector.x * widthHalf ) + widthHalf;
-    vector.y = - ( vector.y * heightHalf ) + heightHalf;
-    return { 
-        x: vector.x,
-        y: vector.y
-    };
+interface CSS3DObjectOptions {
+  coord: Vector3
 }
 
+let camera: PerspectiveCamera
+let scene: Scene
+
+function create3dRect(options: CSS3DObjectOptions) {
+  const { coord } = options
+  // 3d柱子
+  const el = document.createElement('div')
+  el.style.width = '10px'
+  el.style.height = '30px'
+  el.style.background = 'red'
+  const css3dobject = new CSS3DObject(el)
+  const { x, y, z } = coord
+  css3dobject.position.set(x, y , z)
+  return css3dobject
+}
+
+function paintText() {
+  // 文本
+  let order = 0, css2dobjects = []
+  for(let i = 0; i < points.length; i++) {
+    const coords = points[i].coordinates
+    for(let j = 0; j < coords.length; j++) {
+      const [y, x] = coords[j].coord
+      const xAxes = (x - 112.65) * 240
+      const yAxes = (y - 22.82) * 240
+      const vector3 = new Three.Vector3(xAxes, yAxes, 2.7)
+      css2dobjects.push(createTag(coords[j].name, order, vector3))
+      order += 1
+    }
+  }
+  return css2dobjects
+}
 
 async function paintPoint() {
   let pointsLen = 0
@@ -43,9 +65,41 @@ async function paintPoint() {
       mesh.setMatrixAt(index, instanceMatrix)
     }
   }
-  console.log(mesh)
   pointArr.push(mesh)
   return pointArr
+}
+
+function createTag(name: string, index: number, coord: Vector3) {
+  const el = document.createElement('div')
+  el.setAttribute('id', name + index)
+  el.innerHTML = name
+  const css2DObject = new CSS2DObject(el)
+  const {x, y, z} = coord
+  css2DObject.position.set(x, y, z)
+  return css2DObject
+}
+
+function createCss3DRenderer() {
+  const css3d = new CSS3DRenderer()
+  css3d.setSize(window.innerWidth, window.innerHeight)
+  css3d.domElement.style.position = 'absolute'
+  css3d.domElement.style.top = '0'
+  css3d.domElement.style.transform = 'rotate3d(0, 0, 1, 90deg)'
+  css3d.domElement.style.pointerEvents = 'none'
+  document.body.appendChild(css3d.domElement)
+  return css3d
+}
+
+function createCss2DRenderer() {
+  const css2DRenderer = new CSS2DRenderer()
+  css2DRenderer.setSize(window.innerWidth, window.innerHeight)
+  css2DRenderer.domElement.style.position = 'absolute'
+  css2DRenderer.domElement.style.top = '0'
+  css2DRenderer.domElement.style.pointerEvents = 'none'
+  document.body.appendChild(css2DRenderer.domElement)
+  // css2DRenderer.render(scene, camera)
+  // const tag = new CSS2DObject(dom)
+  return css2DRenderer
 }
 
 function loadFont() {
@@ -180,8 +234,7 @@ function paintShape() {
 // 鼠标事件应该在鼠标完成后恢复原来的颜色
 // 优化： 鼠标移动时进行射线检测
 let previous = null
-let camera: PerspectiveCamera
-let scene: Scene
+
 function handleMouseOver(e: MouseEvent) {
   console.log('触发事件')
   let mouse = new Three.Vector2(0, 0)
@@ -216,4 +269,4 @@ function createMap(mCamera: PerspectiveCamera, mScene: Scene) {
   return group
 }
 
-export { createMap, paintShape, paintPoint, paintPointNames, createText }
+export { createMap, paintShape, paintPoint, paintPointNames, createText, createTag, createCss2DRenderer,paintText, createCss3DRenderer, create3dRect }

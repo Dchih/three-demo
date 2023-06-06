@@ -11,9 +11,10 @@ import { createSphere } from "./components/shapes/sphere";
 import { Loop } from "./systems/loop";
 import { createCube } from "./components/cube";
 import { createControls } from "./systems/orbitControl";
-import { createMap, paintShape, paintPoint, paintPointNames, createText } from "./components/shapes/map"
+import { createMap, paintShape, paintPoint, paintPointNames, createText, createCss2DRenderer, createTag, paintText, createCss3DRenderer, create3dRect } from "./components/shapes/map"
 import { createExtrude } from "./components/shapes/extrude"
-import { CSS3DRenderer, CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js"
+import { CSS2DRenderer,CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
 
 
 class World {
@@ -36,6 +37,10 @@ class World {
   #extrude: Mesh;
   #points;
   #pointnames;
+  #css2drenderer
+  #css2dobjects
+  #css3drenderer
+  #css3dobject
 
   constructor(container: HTMLCanvasElement) {
     this.#container = container
@@ -43,9 +48,25 @@ class World {
     this.#renderer = createRenderer()
     this.#scene = createScene()
 
-    this.#controls = createControls(this.#camera, this.#renderer, this.#scene, new CSS3DRenderer())
+    this.#css2drenderer = createCss2DRenderer()
+    this.#css3drenderer = createCss3DRenderer()
 
-    this.#loop = new Loop(this.#camera, this.#scene, this.#renderer)
+    if(this.#css3dobject === undefined) {
+      const vector3 = new Vector3(0, 0, 2.8)
+      this.#css3dobject = create3dRect({ coord: vector3})
+    }
+    this.#scene.add(this.#css3dobject)
+    if(this.#css2dobjects === undefined) {
+      this.#css2dobjects = paintText()
+
+      this.#css2dobjects.forEach(obj => {
+        this.#scene.add(obj)
+      })
+    }
+
+    this.#controls = createControls(this.#camera, this.#renderer, this.#scene)
+
+    this.#loop = new Loop(this.#camera, this.#scene, this.#renderer, this.#css2drenderer, this.#css3drenderer)
     this.#loop.updatables.push(this.#controls)
 
     this.#container.appendChild(this.#renderer.domElement)
@@ -73,10 +94,8 @@ class World {
     // this.#pointnames.forEach(text => {
     //   this.#scene.add(text)
     // })
-    
     this.#scene.add(this.#map)
-
-    const resizer = new Resizer(this.#container, this.#camera, this.#renderer)
+    const resizer = new Resizer(this.#container, this.#camera, this.#renderer, this.#css2drenderer)
   }
 
   render() {
