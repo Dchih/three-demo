@@ -1,11 +1,12 @@
 import * as Three from "three";
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { Vector2,Vector3, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene, CircleGeometry, MathUtils } from "three"
+import { Vector2,Vector3, Shape, PerspectiveCamera, Mesh,ExtrudeGeometry, Scene, CircleGeometry, MathUtils, CircleGeometry } from "three"
 import { geoJSON } from "../../../../assets/mapJSON/geojson";
 import { points } from "../../../../assets/mapJSON/points";
 import { CSS2DRenderer,CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { createCube } from "../cube";
 
 interface CSS3DObjectOptions {
   coord: Vector3
@@ -13,18 +14,78 @@ interface CSS3DObjectOptions {
 
 let camera: PerspectiveCamera
 let scene: Scene
+let meshGroup: Mesh[]
+let pointGroup: Mesh[]
+
+function createRing(index: number, total: number) {
+  const ring = new Mesh(
+    new Three.RingGeometry(1, 1.1, 32),
+    new Three.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 1
+    })
+  )
+  ring.tick = () => {
+    const offset = (Date.now() / 1000 + index) % total
+    ring.geometry = new Three.RingGeometry(offset, offset + .1, 32)
+    ring.material.opacity = 1 - offset / total
+  }
+  ring.position.set(0, 0, 3)
+  return ring
+}
+
+function createWaves(num: number) {
+  const rings: Mesh[] = []
+  for(let i = 0; i < num; i++) {
+    rings.push(createRing(i, num))
+  }
+  return rings
+}
+
+function createLines() {
+
+}
+
+function highlightEdge() {
+
+}
 
 function create3dRect(options: CSS3DObjectOptions) {
   const { coord } = options
   // 3d柱子
   const el = document.createElement('div')
-  el.style.width = '10px'
-  el.style.height = '30px'
-  el.style.background = 'red'
+  el.innerHTML = `<div class="cube">
+    <div class="face front"></div>
+    <div class="face back"></div>
+    <div class="face right"></div>
+    <div class="face left"></div>
+    <div class="face top"></div>
+    <div class="face bottom"></div>
+  </div>`
   const css3dobject = new CSS3DObject(el)
   const { x, y, z } = coord
   css3dobject.position.set(x, y , z)
   return css3dobject
+}
+
+function createPointsCube() {
+  const meshArr: Mesh[] = []
+  for(const point of points) {
+    for(const co of point.coordinates) {
+      const material = new Three.MeshStandardMaterial({color: 0x00ff00})
+      const geometry = new Three.BoxGeometry(1, 1, 30)
+      const mesh = new Three.Mesh(geometry, material)
+      const [y, x] = co.coord
+      const xAxes = (x - 112.65) * 240
+      const yAxes = (y - 22.82) * 240
+      const vector3 = new Three.Vector3(xAxes, yAxes, 2.6)
+      // const { a, b, c } = vector3
+      mesh.position.set(xAxes, yAxes, 17.6)
+      meshArr.push(mesh)
+    }
+  }
+  return meshArr
 }
 
 function paintText() {
@@ -45,27 +106,21 @@ function paintText() {
 }
 
 async function paintPoint() {
-  let pointsLen = 0
-  for(let i = 0; points.length > i; i++) {
-    pointsLen += points[i].coordinates.length
-  }
   const pointArr: Mesh[] = []
-  const circle = new Three.CircleGeometry(.5, 16);
-  const materail = new Three.MeshBasicMaterial({color: 0x00ff00})
-  const mesh = new Three.InstancedMesh(circle, materail, pointsLen)
-  let index = 0
   for(const area of points) {
     for(const point of area.coordinates) {
-      index++
-      const instanceMatrix = new Three.Matrix4()
+      const circle = new Three.CircleGeometry(.5, 16);
+      const materail = new Three.MeshBasicMaterial({color: 0x00ff00})
+      const mesh = new Three.Mesh(circle, materail)
       const [y, x] = point.coord
       const xAxes = (x - 112.65) * 240
       const yAxes = (y - 22.82) * 240
-      instanceMatrix.setPosition(new Three.Vector3(xAxes, yAxes, 2.6))
-      mesh.setMatrixAt(index, instanceMatrix)
+      mesh.position.set(xAxes, yAxes, 2.6)
+      mesh.name = point.name
+      pointArr.push(mesh)
     }
   }
-  pointArr.push(mesh)
+  pointGroup = pointArr
   return pointArr
 }
 
@@ -144,10 +199,8 @@ function paintPointNames() {
       el.style.fontSize = '16px'
       el.style.color = 'white'
       el.style.backgroundColor = 'black'
-      // console.log(el)
       const cssObject = new CSS3DObject(el)
       // cssObject.position.set()
-      // console.log(cssObject)
       const [y, x] = point.coord
       const xAxes = (x - 112.65) * 240
       const yAxes = (y - 22.82) * 240
@@ -187,7 +240,7 @@ function tackleJSON() {
   return group
 }
 
-let meshGroup: Mesh[]
+
 function paintShape() {
   const textureLoader = new Three.TextureLoader()
   const texture = textureLoader.load('/src/assets/background.png')
@@ -223,7 +276,6 @@ function paintShape() {
   })
   const meshArr: Mesh[] = []
   geometryArr.forEach((geometry, index) => {
-    // console.log(geometry.attributes.uv)
     meshArr.push(new Three.Mesh(geometry, [material2, material1]))  // 侧面 顶面
   })
   meshGroup = meshArr
@@ -236,7 +288,6 @@ function paintShape() {
 let previous = null
 
 function handleMouseOver(e: MouseEvent) {
-  console.log('触发事件')
   let mouse = new Three.Vector2(0, 0)
   const canvas: HTMLCanvasElement = document.querySelector('#scene') as HTMLCanvasElement
   mouse.x = (e.offsetX / canvas.offsetWidth) * 2 - 1
@@ -248,7 +299,6 @@ function handleMouseOver(e: MouseEvent) {
   if(previous) {
     previous.material[0].color.set(0x686868)
   }
-  
   if(intersections[0] && intersections[0].object) {
     const newMaterial1 = new Three.MeshPhongMaterial({
       color: 0xff9300,
@@ -256,6 +306,10 @@ function handleMouseOver(e: MouseEvent) {
     })
     intersections[0].object.material[0] = newMaterial1
     previous = intersections[0].object
+  }
+  let intersectionOfPoints = raycaster.intersectObjects(pointGroup)
+  if(intersectionOfPoints[0] && intersectionOfPoints[0].object) {
+    console.log(intersectionOfPoints[0].object.name)
   }
 }
 
@@ -269,4 +323,17 @@ function createMap(mCamera: PerspectiveCamera, mScene: Scene) {
   return group
 }
 
-export { createMap, paintShape, paintPoint, paintPointNames, createText, createTag, createCss2DRenderer,paintText, createCss3DRenderer, create3dRect }
+export { 
+  createMap, 
+  paintShape,
+  paintPoint,
+  paintPointNames,
+  createText,
+  createTag,
+  createCss2DRenderer,
+  paintText,
+  createCss3DRenderer,
+  create3dRect,
+  createPointsCube,
+  createWaves,
+  createRing }

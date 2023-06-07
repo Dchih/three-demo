@@ -128,9 +128,7 @@ onMounted(() => {
   <!-- <button @click="toggleClickInteraction">打开鼠标点击交互</button> -->
   <div id="scene"></div>
 </template>
-
-<style scoped>
-
+<style>
 #scene {
   width: 100%;
   height: 100%;
@@ -143,4 +141,5 @@ onMounted(() => {
   left: 0;
   z-index: -1;
 }
+
 </style>

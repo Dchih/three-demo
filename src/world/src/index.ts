@@ -11,7 +11,21 @@ import { createSphere } from "./components/shapes/sphere";
 import { Loop } from "./systems/loop";
 import { createCube } from "./components/cube";
 import { createControls } from "./systems/orbitControl";
-import { createMap, paintShape, paintPoint, paintPointNames, createText, createCss2DRenderer, createTag, paintText, createCss3DRenderer, create3dRect } from "./components/shapes/map"
+import {
+  createMap,
+  paintShape,
+  paintPoint,
+  paintPointNames,
+  createText,
+  createCss2DRenderer,
+  createTag,
+  paintText,
+  createCss3DRenderer,
+  create3dRect,
+  createPointsCube,
+  createWaves,
+  createRing
+ } from "./components/shapes/map"
 import { createExtrude } from "./components/shapes/extrude"
 import { CSS2DRenderer,CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
@@ -41,6 +55,7 @@ class World {
   #css2dobjects
   #css3drenderer
   #css3dobject
+  #waves
 
   constructor(container: HTMLCanvasElement) {
     this.#container = container
@@ -49,13 +64,12 @@ class World {
     this.#scene = createScene()
 
     this.#css2drenderer = createCss2DRenderer()
-    this.#css3drenderer = createCss3DRenderer()
+    this.#css3drenderer = createPointsCube()
 
-    if(this.#css3dobject === undefined) {
-      const vector3 = new Vector3(0, 0, 2.8)
-      this.#css3dobject = create3dRect({ coord: vector3})
-    }
-    this.#scene.add(this.#css3dobject)
+    // this.#css3drenderer.forEach(mesh => {
+    //   this.#scene.add(mesh)
+    // })
+
     if(this.#css2dobjects === undefined) {
       this.#css2dobjects = paintText()
 
@@ -70,6 +84,12 @@ class World {
     this.#loop.updatables.push(this.#controls)
 
     this.#container.appendChild(this.#renderer.domElement)
+
+    // this.#waves = createWaves(5)
+    // this.#waves.forEach(w => {
+    //   this.#scene.add(w)
+    //   this.#loop.updatables.push(w)
+    // })
 
     this.angle = 0
     this.#lights = createLights()

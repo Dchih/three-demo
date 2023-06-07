@@ -25,7 +25,6 @@ class Loop {
       this.tick()
       this.#renderer.render(this.#scene, this.#camera)
       this.#css2drenderer.render(this.#scene, this.#camera)
-      this.#css3drenderer.render(this.#scene, this.#camera)
     })
   }
   stop() {
