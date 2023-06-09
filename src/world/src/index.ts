@@ -24,7 +24,8 @@ import {
   create3dRect,
   createPointsCube,
   createWaves,
-  createRing
+  createRing,
+  highlightEdge
  } from "./components/shapes/map"
 import { createExtrude } from "./components/shapes/extrude"
 import { CSS2DRenderer,CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
@@ -56,6 +57,7 @@ class World {
   #css3drenderer
   #css3dobject
   #waves
+  #edgeCurve
 
   constructor(container: HTMLCanvasElement) {
     this.#container = container
@@ -84,6 +86,13 @@ class World {
     this.#loop.updatables.push(this.#controls)
 
     this.#container.appendChild(this.#renderer.domElement)
+
+    this.#edgeCurve = highlightEdge()
+    this.#edgeCurve.forEach(object => {
+      this.#scene.add(object)
+      this.#loop.updatables.push(object)
+    })
+    
 
     // this.#waves = createWaves(5)
     // this.#waves.forEach(w => {

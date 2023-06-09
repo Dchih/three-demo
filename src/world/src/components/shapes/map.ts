@@ -16,10 +16,11 @@ let camera: PerspectiveCamera
 let scene: Scene
 let meshGroup: Mesh[]
 let pointGroup: Mesh[]
+let rectArr: Mesh[]
 
 function createRing(index: number, total: number) {
   const ring = new Mesh(
-    new Three.RingGeometry(1, 1.1, 32),
+    new Three.RingGeometry(1, 1.3, 32),
     new Three.MeshBasicMaterial({
       color: 0xffffff,
       transparent: true,
@@ -48,7 +49,57 @@ function createLines() {
 }
 
 function highlightEdge() {
+  let counter = 0
+  let edgeVector3: Vector3[] = []
+  geoJSON.features.forEach((feature, index) => {
+    if(index === 4) {
+      const coord = feature.geometry.coordinates
+      coord.forEach(co => {
+        co.forEach(poly => {
+          const [x, y] = poly
+          edgeVector3.push(new Three.Vector3((x - 112.65) * 240, (y - 22.82) * 240, 3))
+        })
+      })
+    }
+  })
+  const customCurve = new Three.CatmullRomCurve3(edgeVector3)
+  const geometries = new Three.SphereGeometry(.2, 32, 32)
+  const materail = new Three.MeshBasicMaterial({color: 0xffff00})
+  const mesh = new Three.Mesh(geometries, materail)
 
+  const tailGeometry = new Three.BufferGeometry()
+  const tailMaterial = new Three.PointsMaterial({color: 0xffff00, size: .5})
+  const particles: Vector3[] = []
+  for(let i = 0; i < 100; i++) {
+    particles.push(new Three.Vector3(1, 1, 10))
+  }
+  const positions = new Array(100).fill({}).map(() => new Three.Vector3())
+  tailGeometry.setFromPoints(particles)
+  const tail = new Three.Points(tailGeometry, tailMaterial)
+
+  mesh.tick = () => {
+    const highResPoint = customCurve.getPoints(10000)
+    const point = highResPoint[Math.floor(counter % highResPoint.length)]
+    const { x, y, z } = point
+    mesh.position.set(x, y, z)
+    counter += 10
+  }
+  tail.tick = () => {
+    positions.unshift(mesh.position.clone())
+    if(positions.length > particles.length) {
+      positions.pop()
+    }
+    for(let i = 0; i < particles.length; i++) {
+      const particle = particles[i]
+      particle.lerp(mesh.position, .1)
+      if(positions[i]) {
+        particles[i].copy(positions[i])
+      }
+    }
+    tailGeometry.setFromPoints(particles)
+    tailGeometry.attributes.position.needsUpdate = true
+  }
+  return [mesh, tail]
 }
 
 function create3dRect(options: CSS3DObjectOptions) {
@@ -85,6 +136,7 @@ function createPointsCube() {
       meshArr.push(mesh)
     }
   }
+  rectArr = meshArr
   return meshArr
 }
 
@@ -288,18 +340,21 @@ function paintShape() {
 let previous = null
 
 function handleMouseOver(e: MouseEvent) {
+  e.stopPropagation()
   let mouse = new Three.Vector2(0, 0)
   const canvas: HTMLCanvasElement = document.querySelector('#scene') as HTMLCanvasElement
   mouse.x = (e.offsetX / canvas.offsetWidth) * 2 - 1
   mouse.y = - (e.offsetY / canvas.offsetHeight) * 2 + 1
   const raycaster = new Three.Raycaster()
   raycaster.setFromCamera(mouse, camera)
+  const group = meshGroup.concat(pointGroup).concat(rectArr)
   // 性能问题
-  let intersections = raycaster.intersectObjects(meshGroup)
+  let intersections = raycaster.intersectObjects(group)
   if(previous) {
     previous.material[0].color.set(0x686868)
   }
   if(intersections[0] && intersections[0].object) {
+    console.log(intersections[0].object.name)
     const newMaterial1 = new Three.MeshPhongMaterial({
       color: 0xff9300,
       specular: 0x00ff00
@@ -307,14 +362,10 @@ function handleMouseOver(e: MouseEvent) {
     intersections[0].object.material[0] = newMaterial1
     previous = intersections[0].object
   }
-  let intersectionOfPoints = raycaster.intersectObjects(pointGroup)
-  if(intersectionOfPoints[0] && intersectionOfPoints[0].object) {
-    console.log(intersectionOfPoints[0].object.name)
-  }
 }
 
 // func
-window.addEventListener('mouseenter', handleMouseOver, false)
+// window.addEventListener('mouseenter', handleMouseOver, false)
 window.addEventListener('click', handleMouseOver, false)
 function createMap(mCamera: PerspectiveCamera, mScene: Scene) {
   const group = tackleJSON()
@@ -336,4 +387,6 @@ export {
   create3dRect,
   createPointsCube,
   createWaves,
-  createRing }
+  createRing,
+  highlightEdge
+}
