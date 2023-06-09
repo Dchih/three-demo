@@ -21,8 +21,7 @@ function createControls(camera: PerspectiveCamera, renderer: WebGLRenderer, scen
   // controls.minPolarAngle = MathUtils.degToRad(65)
   // controls.maxPolarAngle = MathUtils.degToRad(150)
   controls.tick = () => {
-    // controls.target.lerp(randomPosition(-10, 10), 0.1)
-    console.log('update controls')
+    // controls.target.lerp(randomPosition(-10, 10), 0.1)\
     controls.update()
   }
   // controls.addEventListener('change', () => {

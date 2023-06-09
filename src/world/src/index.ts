@@ -25,7 +25,8 @@ import {
   createPointsCube,
   createWaves,
   createRing,
-  highlightEdge
+  highlightEdge,
+  setSimulation
  } from "./components/shapes/map"
 import { createExtrude } from "./components/shapes/extrude"
 import { CSS2DRenderer,CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
@@ -74,11 +75,20 @@ class World {
 
     if(this.#css2dobjects === undefined) {
       this.#css2dobjects = paintText()
+      this.#css2dobjects = this.#css2dobjects.map(object => {
+        const {x, y , z} = object.position
+        object.x = x
+        object.y = y
+        object.z = z
+        return object
+      })
+      setSimulation(this.#css2dobjects)
 
       this.#css2dobjects.forEach(obj => {
         this.#scene.add(obj)
       })
     }
+    
 
     this.#controls = createControls(this.#camera, this.#renderer, this.#scene)
 
@@ -92,7 +102,6 @@ class World {
       this.#scene.add(object)
       this.#loop.updatables.push(object)
     })
-    
 
     // this.#waves = createWaves(5)
     // this.#waves.forEach(w => {

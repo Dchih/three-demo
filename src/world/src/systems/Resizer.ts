@@ -12,7 +12,6 @@ const setSize = (container: HTMLCanvasElement, camera: PerspectiveCamera, render
 }
 class Resizer {
   constructor(container: HTMLCanvasElement, camera: PerspectiveCamera, renderer: WebGLRenderer, css2DRenderer: CSS2DRenderer) {
-    console.log(css2DRenderer)
     setSize(container, camera, renderer, css2DRenderer)
     window.addEventListener('resize', () => {
       setSize(container, camera, renderer, css2DRenderer)

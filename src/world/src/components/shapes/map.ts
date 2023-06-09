@@ -7,16 +7,44 @@ import { CSS2DRenderer,CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { createCube } from "../cube";
+import * as d3 from "d3"
 
 interface CSS3DObjectOptions {
   coord: Vector3
 }
+
+
 
 let camera: PerspectiveCamera
 let scene: Scene
 let meshGroup: Mesh[]
 let pointGroup: Mesh[]
 let rectArr: Mesh[]
+let nodes: Node[] = []
+
+interface Node {
+  x: number,
+  y: number,
+  radius: number | string,
+  name: string,
+  parentname: string
+}
+
+function ticked(nodes: Node[]) {
+  const labelElements = document.querySelectorAll('.label')
+  labelElements.forEach((el, i) => {
+    // el.setAttribute('style', `left: ${nodes[i].x / 240}px; top: ${nodes[i].y / 240}px;`)
+    el.setAttribute('transform', `translate(${nodes[i].x}px, ${nodes[i].y}px)`)
+  })
+}
+
+function setSimulation(nodes: Node[]) {
+  d3.forceSimulation(nodes)
+    .force("x", d3.forceX(d => d.x).strength(.2))
+    .force("y", d3.forceY(d => d.y).strength(.2))
+    .force('collide', d3.forceCollide(32).strength(.2))
+    .on('tick', ticked.bind(null, nodes))
+}
 
 function createRing(index: number, total: number) {
   const ring = new Mesh(
@@ -150,7 +178,14 @@ function paintText() {
       const xAxes = (x - 112.65) * 240
       const yAxes = (y - 22.82) * 240
       const vector3 = new Three.Vector3(xAxes, yAxes, 2.7)
-      css2dobjects.push(createTag(coords[j].name, order, vector3))
+      const params = {
+        name: coords[j].name,
+        index: order,
+        coord: vector3,
+        parentname: coords[i].parentname,
+        radius: coords[i].radius
+      }
+      css2dobjects.push(createTag(params))
       order += 1
     }
   }
@@ -176,12 +211,17 @@ async function paintPoint() {
   return pointArr
 }
 
-function createTag(name: string, index: number, coord: Vector3) {
+function createTag(params: {name: string, index: number, coord: Vector3, radius: number, parentname: string}) {
+  const { name, index, coord, radius, parentname } = params
   const el = document.createElement('div')
   el.setAttribute('id', name + index)
+  el.setAttribute('class', 'label')
   el.innerHTML = name
   const css2DObject = new CSS2DObject(el)
   const {x, y, z} = coord
+  css2DObject.name = name
+  css2DObject.radius = radius
+  css2DObject.parentname = parentname
   css2DObject.position.set(x, y, z)
   return css2DObject
 }
@@ -388,5 +428,6 @@ export {
   createPointsCube,
   createWaves,
   createRing,
-  highlightEdge
+  highlightEdge,
+  setSimulation
 }
