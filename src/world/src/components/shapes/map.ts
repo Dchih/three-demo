@@ -13,8 +13,6 @@ interface CSS3DObjectOptions {
   coord: Vector3
 }
 
-
-
 let camera: PerspectiveCamera
 let scene: Scene
 let meshGroup: Mesh[]
@@ -30,20 +28,47 @@ interface Node {
   parentname: string
 }
 
+/**
+ * update the position of the text
+ * to make sure the text does not overlap
+ * @param nodes the nodes handled by three.js plugin -- css2drenderer
+ */
 function ticked(nodes: Node[]) {
-  const labelElements = document.querySelectorAll('.label')
+  // console.log(nodes[0].x, nodes[0].y)
+  const labelElements = document.querySelectorAll('.label') as NodeListOf<HTMLDivElement>
   labelElements.forEach((el, i) => {
-    // el.setAttribute('style', `left: ${nodes[i].x / 240}px; top: ${nodes[i].y / 240}px;`)
-    el.setAttribute('transform', `translate(${nodes[i].x}px, ${nodes[i].y}px)`)
+    el.style.transform = `translate(${nodes[i].x}px, ${nodes[i].y}px)`
   })
 }
 
+/**
+ * use d3 to set the simulation of the text
+ * @param nodes the nodes handled by three.js plugin -- css2drenderer
+ */
 function setSimulation(nodes: Node[]) {
+  console.log(nodes)
   d3.forceSimulation(nodes)
     .force("x", d3.forceX(d => d.x).strength(.2))
     .force("y", d3.forceY(d => d.y).strength(.2))
-    .force('collide', d3.forceCollide(32).strength(.2))
+    .force('collide', d3.forceCollide(3).strength(.2))
     .on('tick', ticked.bind(null, nodes))
+}
+
+/**
+ * use broken line to connect the points
+ */
+function connectTextWithBrokenLine(nodes: Node[]) {
+  const svg = document.querySelector('#svg')
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+  line.setAttribute('x1', '0')
+  line.setAttribute('y1', '0')
+  line.setAttribute('x2', '100')
+  line.setAttribute('y2', '100')
+  line.setAttribute('stroke', 'red')
+  line.setAttribute('stroke-width', '2')
+  g.appendChild(line)
+  svg.appendChild(g)
 }
 
 function createRing(index: number, total: number) {
@@ -223,6 +248,10 @@ function createTag(params: {name: string, index: number, coord: Vector3, radius:
   css2DObject.radius = radius
   css2DObject.parentname = parentname
   css2DObject.position.set(x, y, z)
+  css2DObject.tick = () => {
+    const { x, y, z } = css2DObject
+    css2DObject.position.set(x, y, z)
+  }
   return css2DObject
 }
 

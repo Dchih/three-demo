@@ -4,7 +4,10 @@ import { main } from "./world/main"
 import type { World } from "./world/src";
 import { Vector3 } from "three"
 import { loadFull } from "tsparticles";
+import { draw } from "./d3force/force"
 const clickSwitch = ref(false)
+
+
 const options = ref({
     background: {
         color: {
@@ -112,6 +115,7 @@ function toggleClickInteraction() {
 
 onMounted(() => {
   world = main()
+// draw()
 })
       
 
@@ -119,14 +123,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <Particles
+  <!-- <Particles
     v-if="refreshBackground"
     id="tsparticles"
     :particlesInit="particlesInit"
     :particlesLoaded="particlesLoaded"
-    :options="options"></Particles>
+    :options="options"></Particles> -->
   <!-- <button @click="toggleClickInteraction">打开鼠标点击交互</button> -->
   <div id="scene"></div>
+  <div id="d3-graph"></div>
 </template>
 <style>
 #scene {

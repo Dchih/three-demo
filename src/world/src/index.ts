@@ -73,27 +73,36 @@ class World {
     //   this.#scene.add(mesh)
     // })
 
-    if(this.#css2dobjects === undefined) {
+    // if(this.#css2dobjects === undefined) {
       this.#css2dobjects = paintText()
+      
+      // add css2dobjects to scene
+      this.#css2dobjects.forEach(obj => {
+        this.#scene.add(obj)
+        
+      })
+      // init simulation
+
       this.#css2dobjects = this.#css2dobjects.map(object => {
-        const {x, y , z} = object.position
+        const { x, y, z } = object.position
         object.x = x
         object.y = y
         object.z = z
         return object
       })
+      // set text simulation
       setSimulation(this.#css2dobjects)
-
-      this.#css2dobjects.forEach(obj => {
-        this.#scene.add(obj)
-      })
-    }
+    // }
     
 
     this.#controls = createControls(this.#camera, this.#renderer, this.#scene)
 
     this.#loop = new Loop(this.#camera, this.#scene, this.#renderer, this.#css2drenderer, this.#css3drenderer)
     this.#loop.updatables.push(this.#controls)
+
+    this.#css2dobjects.forEach(obj => {
+      this.#loop.updatables.push(obj)
+    })
 
     this.#container.appendChild(this.#renderer.domElement)
 
