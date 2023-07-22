@@ -32,10 +32,6 @@ function createCube() {
     cube.rotation.x += radiansPerSecond * delta
     cube.rotation.y += radiansPerSecond * delta
     cube.rotation.z += radiansPerSecond * delta
-    // cube.position.x = 10 - (cube.position.x + 1 * delta) % 10
-    // cube.scale.x = triangleWave(waveNumber, 10) * delta * 100
-    // cube.scale.y = triangleWave(waveNumber, 10) * delta * 100
-    // cube.scale.z = triangleWave(waveNumber, 10) * delta * 100
   }
   cube.position.set(-10, 30, 0)
   return cube

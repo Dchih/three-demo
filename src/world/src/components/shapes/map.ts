@@ -328,7 +328,7 @@ function tackleJSON() {
     group.add(paintEdge(pointArr))
   })
   group.scale.set(4,4,4)
-  // group.position.set(-112,-22,-2)
+  group.position.set(-112,-22,-2)
   return group
 }
 

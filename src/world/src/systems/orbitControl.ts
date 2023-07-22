@@ -2,7 +2,12 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { PerspectiveCamera, MathUtils, WebGLRenderer, Scene} from 'three'
 
 class orbitControlHasTick extends OrbitControls {
-
+  constructor(Camera: PerspectiveCamera, domElement: HTMLCanvasElement) {
+    super(Camera, domElement)
+  }
+  tick() {
+    this.update()
+  }
 }
 
 function createControls(camera: PerspectiveCamera, renderer: WebGLRenderer, scene: Scene) {
